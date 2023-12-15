@@ -59,7 +59,8 @@ foreach($mails as $id => $mail) {
     }
 }
 
-$counter = ['today' => 0, 'yesterday' => 0, 'week' => 0, 'lastweek' => 0, 'month' => 0, 'lastmonth' => 0];
+$counter = [];
+$counterConf = ['-24 hours' => "24 dernières heures", '-7 days' => "7 derniers jours", '-30 days' => "30 derniers jours", '-3 months' => "3 derniers mois glissant"];
 foreach($mails as $mail):
     $client = findClient($mail, $domains);
     if(!$client) {
@@ -75,23 +76,14 @@ foreach($mails as $mail):
     if($mail['Date']->format('Y') != date('Y')) {
         continue;
     }
-    if($mail['Date']->format('Y-m-d') == date('Y-m-d')) {
-        $counter['today']++;
-    }
-    if($mail['Date']->format('Y-m-d') == (new DateTime())->modify('-1 day')->format('Y-m-d')) {
-        $counter['yesterday']++;
-    }
-    if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify('monday this week')->format('Y-m-d') && $mail['Date']->format('Y-m-d') <= (new DateTime())->modify('sunday this week')->format('Y-m-d')) {
-        $counter['week']++;
-    }
-    if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify('monday last week')->format('Y-m-d') && $mail['Date']->format('Y-m-d') <= (new DateTime())->modify('sunday last week')->format('Y-m-d')) {
-        $counter['lastweek']++;
-    }
-    if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify('first day of this month')->format('Y-m-d') && $mail['Date']->format('Y-m-d') <= (new DateTime())->modify('last day of this month')->format('Y-m-d')) {
-        $counter['month']++;
-    }
-    if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify('first day of last month')->format('Y-m-d') && $mail['Date']->format('Y-m-d') <= (new DateTime())->modify('last day of last month')->format('Y-m-d')) {
-        $counter['lastmonth']++;
+    foreach($counterConf as $duration => $counterLibelle) {
+        if(!isset($counter[$counterLibelle])) {
+            $counter[$counterLibelle] = 0;
+        }
+        $counter[$counterLibelle];
+        if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify($duration)->format('Y-m-d')) {
+            $counter[$counterLibelle]++;
+        }
     }
     $mail['Client'] = $client;
     $clients['all'][$mail['Date']->format('Y-m-d H:i:s').$mail['Message-Id']] = $mail;
@@ -116,68 +108,32 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
 <body>
     <div class="container">
         <div class="row mt-4">
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center">Aujourd'hui</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-center"><?php echo $counter['today'] ?></h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center">Hier</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-center"><?php echo $counter['yesterday'] ?></h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center">Cette semaine</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-center"><?php echo $counter['week'] ?></h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center">La semaine dernière</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-center"><?php echo $counter['lastweek'] ?></h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center">Ce mois</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-center"><?php echo $counter['month'] ?></h5>
-                    </div>
-                </div>
-            </div>
-            <div class="col">
-                <div class="card">
-                    <div class="card-header text-center">Le mois dernier</div>
-                    <div class="card-body">
-                        <h5 class="card-title text-center"><?php echo $counter['lastmonth'] ?></h5>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mt-4">
             <div class="col-2">
-                <div class="list-group">
-                    <?php foreach($clients as $client => $mails): ?>
-                        <a href="?client=<?php echo $client ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($current == $client): ?>active<?php endif; ?>">
-                            <?php echo $client ?>
-                            <span class="badge bg-primary rounded-pill"><?php echo count($mails) ?></span>
-                        </a>
+                <div class="card">
+                    <div class="list-group list-group-flush">
+                        <?php foreach($clients as $client => $mails): ?>
+                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?>">
+                                <?php if($client == 'all'): ?>Tous les clients<?php else: ?><?php echo $client ?><?php endif; ?>
+                                <span class="badge bg-primary rounded-pill"><?php echo count($mails) ?></span>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="row mb-4">
+                    <?php foreach($counter as $libelle => $number):  ?>
+                    <div class="col">
+                        <div class="card">
+                            <div class="card-header text-center"><?php echo $libelle ?></div>
+                            <div class="card-body text-center p-1">
+                                <a class="btn" href=""><?php echo $number ?></a>
+                            </div>
+                        </div>
+                    </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
-            <div class="col">
-                <table class="table table-bordered table-sm table-striped">
+                <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -196,7 +152,7 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                             <?php endforeach ?>
                         </tbody>
                     </table>
-                    <textarea class="form-control mb-4" style="height: 400px;" readonly="readonly"><?php foreach($clients[$current] as $mail): ?>-------------------
+                    <textarea class="form-control mb-4 opacity-50" style="height: 400px;" readonly="readonly"><?php foreach($clients[$current] as $mail): ?>-------------------
 Date: <?php echo $mail['DateOrigin'] ?>
 
 From: <?php echo $mail['FromOrigin'] ?>
