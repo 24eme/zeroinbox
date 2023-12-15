@@ -112,9 +112,9 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                 <div class="card">
                     <div class="list-group list-group-flush">
                         <?php foreach($clients as $client => $mails): ?>
-                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?>">
-                                <?php if($client == 'all'): ?>Tous les clients<?php else: ?><?php echo $client ?><?php endif; ?>
-                                <span class="badge bg-primary rounded-pill"><?php echo count($mails) ?></span>
+                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?>">
+                                <?php if($client == 'all'): ?>ZeroInbox<?php else: ?><?php echo $client ?><?php endif; ?>
+                                <span class="badge <?php if($client == 'all'): ?>bg-black<?php elseif($current != $client): ?>bg-secondary bg-opacity-75<?php endif; ?><?php if($current == $client && $client != 'all'): ?>bg-primary<?php endif; ?> rounded-pill"><?php echo count($mails) ?></span>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -133,7 +133,7 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                     </div>
                     <?php endforeach; ?>
                 </div>
-                <table class="table table-bordered table-striped">
+                <table class="table table-bordered table-striped table-sm">
                     <thead>
                         <tr>
                             <th>Date</th>
@@ -147,12 +147,12 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                                     <td title="<?php echo $mail['Message-Id'] ?>"><?php echo str_replace(" ", "&nbsp;", $mail['Date']->format('d/m/Y H:i')); ?></td>
                                     <td><?php echo $mail['From']; ?></td>
                                     <td><?php echo $mail['Subject']; ?></td>
-                                    <td><?php echo $mail['Client']; ?></td>
+                                    <td class="text-center"><?php echo $mail['Client']; ?></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
                     </table>
-                    <textarea class="form-control mb-4 opacity-50" style="height: 400px;" readonly="readonly"><?php foreach($clients[$current] as $mail): ?>-------------------
+                    <textarea class="form-control mb-4 opacity-25" style="height: 400px;" readonly="readonly"><?php foreach($clients[$current] as $mail): ?>-------------------
 Date: <?php echo $mail['DateOrigin'] ?>
 
 From: <?php echo $mail['FromOrigin'] ?>
