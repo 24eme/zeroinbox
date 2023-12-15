@@ -112,9 +112,9 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                 <div class="card">
                     <div class="list-group list-group-flush">
                         <?php foreach($clients as $client => $mails): ?>
-                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?>">
+                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>text-primary<?php endif; ?>">
                                 <?php if($client == 'all'): ?>ZeroInbox<?php else: ?><?php echo $client ?><?php endif; ?>
-                                <span class="badge <?php if($client == 'all'): ?>bg-black<?php elseif($current != $client): ?>bg-secondary bg-opacity-75<?php endif; ?><?php if($current == $client && $client != 'all'): ?>bg-primary<?php endif; ?> rounded-pill"><?php echo count($mails) ?></span>
+                                <span class="badge <?php if($current != $client && $client == 'all'): ?>bg-dark<?php elseif($current != $client): ?>bg-secondary bg-opacity-75<?php endif; ?><?php if($current == $client && $client != 'all'): ?>bg-white text-primary<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>bg-primary<?php endif; ?> rounded-pill"><?php echo count($mails) ?></span>
                             </a>
                         <?php endforeach; ?>
                     </div>
