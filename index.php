@@ -76,16 +76,21 @@ foreach($mails as $mail):
     if($mail['Date']->format('Y') != date('Y')) {
         continue;
     }
-    foreach($counterConf as $duration => $counterLibelle) {
-        if(!isset($counter[$counterLibelle])) {
-            $counter[$counterLibelle] = 0;
-        }
-        $counter[$counterLibelle];
-        if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify($duration)->format('Y-m-d')) {
-            $counter[$counterLibelle]++;
+    $mail['Client'] = $client;
+    if($client == $current || $current == 'all') {
+        foreach($counterConf as $duration => $counterLibelle) {
+            if(!isset($counter[$duration])) {
+                $counter[$duration] = 0;
+            }
+            $counter[$duration];
+            if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify($duration)->format('Y-m-d')) {
+                $counter[$duration]++;
+            }
         }
     }
-    $mail['Client'] = $client;
+    if(isset($_GET['duration']) && $mail['Date']->format('Y-m-d') < (new DateTime())->modify($_GET['duration'])->format('Y-m-d')) {
+        continue;
+    }
     $clients['all'][$mail['Date']->format('Y-m-d H:i:s').$mail['Message-Id']] = $mail;
     $clients[$client][$mail['Date']->format('Y-m-d H:i:s').$mail['Message-Id']] = $mail;
 endforeach;
@@ -122,12 +127,12 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
             </div>
             <div class="col">
                 <div class="row mb-4">
-                    <?php foreach($counter as $libelle => $number):  ?>
+                    <?php foreach($counter as $duration => $number):  ?>
                     <div class="col">
-                        <div class="card">
-                            <div class="card-header text-center"><?php echo $libelle ?></div>
+                        <div class="card <?php if(isset($_GET['duration']) && $_GET['duration'] == $duration): ?>border-primary<?php endif; ?>">
+                            <div class="card-header <?php if(isset($_GET['duration']) && $_GET['duration'] == $duration): ?>text-bg-primary<?php endif; ?> text-center"><?php echo $counterConf[$duration] ?></div>
                             <div class="card-body text-center p-1">
-                                <a class="btn" href=""><?php echo $number ?></a>
+                                <a class="btn stretched-link <?php if(isset($_GET['duration']) && $_GET['duration'] == $duration): ?>text-primary<?php endif; ?>" href="?client=<?php echo $current ?><?php if(!isset($_GET['duration']) || $_GET['duration'] != $duration): ?>&duration=<?php echo $duration ?><?php endif ?>"><?php echo $number ?></a>
                             </div>
                         </div>
                     </div>
@@ -145,8 +150,8 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                             <?php foreach($clients[$current] as $mail): ?>
                                 <tr>
                                     <td title="<?php echo $mail['Message-Id'] ?>"><?php echo str_replace(" ", "&nbsp;", $mail['Date']->format('d/m/Y H:i')); ?></td>
-                                    <td><?php echo $mail['From']; ?></td>
-                                    <td><?php echo $mail['Subject']; ?></td>
+                                    <td class="user-select-all"><?php echo $mail['From']; ?></td>
+                                    <td class="user-select-all"><?php echo $mail['Subject']; ?></td>
                                     <td class="text-center"><?php echo $mail['Client']; ?></td>
                                 </tr>
                             <?php endforeach ?>
