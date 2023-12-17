@@ -133,18 +133,18 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                 <table class="table table-bordered table-striped table-sm">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>De</th>
+                            <th class="col-1">Date</th>
+                            <th class="col-3">De</th>
                             <th>Sujet</th>
-                            <th>Client</th>
+                            <th class="col-1">Client</th>
                         </thead>
                         <tbody>
                             <?php foreach($clients[$currentClient] as $mail): ?>
                                 <tr>
-                                    <td title="<?php echo $mail->getId() ?>"><?php echo str_replace(" ", "&nbsp;",$mail->getDateObject()->format('d/m/Y H:i')); ?></td>
-                                    <td class="user-select-all"><?php echo $mail->getFromEmail(); ?></td>
-                                    <td class="user-select-all"><?php echo $mail->getSubject(); ?></td>
-                                    <td class="text-center"><?php echo $mail->getClient(); ?></td>
+                                    <td class="text-nowrap" title="<?php echo $mail->getId() ?>"><?php echo $mail->getDateObject()->format('d/m/Y H:i'); ?></td>
+                                    <td class="text-truncate col-3" style="max-width: 250px;" title="<?php echo $mail->getFromEmail(); ?>"><?php echo $mail->getFromEmail(); ?></td>
+                                    <td><?php echo $mail->getSubject(); ?></td>
+                                    <td class="text-nowrap" class="text-center"><?php echo $mail->getClient(); ?></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
