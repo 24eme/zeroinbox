@@ -38,7 +38,7 @@ foreach($mails as $id => $mail) {
 
 foreach($mails as $mail) {
     if($mail->getReplyToId() && isset($mails[$mail->getReplyToId()])) {
-        $mails[$mail->getReplyToId()]->addResponses($mail->getId());
+        $mails[$mail->getReplyToId()]->addResponses($mail);
     }
 }
 

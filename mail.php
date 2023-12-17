@@ -46,17 +46,24 @@ class Mail {
         return self::extractInChevron($this->headers['In-Reply-To']);
     }
 
-    public function addResponses($id) {
-        if(!$id) {
-            return;
-        }
-
-        $this->responses[] = $id;
+    public function addResponses(Mail $mail) {
+        $this->responses[] = $mail;
     }
 
     public function getResponses() {
+        $responses = $this->responses;
+        foreach($this->responses as $mail) {
+            $responses = array_merge($responses, $mail->getResponses());
+        }
 
-        return $this->responses;
+        $responsesEquipe = [];
+        foreach($responses as $mail) {
+            if(strpos($mail->getFromEmail(), Config::getInstance()->config['team_email']) !== false) {
+                $responsesEquipe[] = $mail;
+            }
+        }
+
+        return $responsesEquipe;
     }
 
     public function getClient() {
