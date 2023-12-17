@@ -1,21 +1,13 @@
 <?php
 
+require_once('core.php');
 require_once('config/config.php');
-include_once('cache/mails.php');
+require_once('cache/mails.php');
 
-function findClient($mail, $domains) {
-
-    if(isset($domains[strtolower($mail['From'])])) {
-        return $domains[strtolower($mail['From'])];
-    }
-
-    $domain = explode('@', $mail['From'])[1];
-
-    if(isset($domains[strtolower($domain)])) {
-        return $domains[strtolower($domain)];
-    }
-
-    return null;
+$mails = [];
+foreach($mailsHeader as $headers) {
+    $mail = new Mail($headers);
+    $mails[$mail->getId()] = new Mail($headers);
 }
 
 $clients = ['all' => []];
@@ -26,34 +18,36 @@ foreach($domains as $client) {
 
 $current = isset($_GET['client']) ? $_GET['client'] : 'all';
 $subjects = [];
-foreach($mails as $id => $mail) {
-    $subjects[strtolower($mail['Subject'])] = $mail['Message-Id'];
+foreach($mails as $mail) {
+    $subjects[strtolower($mail->getSubject())] = $mail->getId();
 }
+
 foreach($mails as $id => $mail) {
-    if(isset($mail['In-Reply-To'])) {
+    if($mail->getReplyToId()) {
         continue;
     }
-    if(!preg_match('/^re ?: /', strtolower($mail['Subject']))) {
+    if(!preg_match('/^re ?: /', strtolower($mail->getSubject()))) {
         continue;
     }
-    $keySubject = preg_replace('/^re ?: /', '', strtolower($mail['Subject']));
+    $keySubject = preg_replace('/^re ?: /', '', strtolower($mail->getSubject()));
     if(isset($subjects[$keySubject])) {
-        $mails[$id]['In-Reply-To'] = $subjects[$keySubject];
+        $mails[$id]->setReplyToId($subjects[$keySubject]);
         unset($subjects[$keySubject]);
     }
 }
+
 foreach($mails as $mail) {
-    if(isset($mail['In-Reply-To'])) {
-        $mails[$mail['In-Reply-To']]['Responses'][] = $mail['Message-Id'];
+    if($mail->getReplyToId() && isset($mails[$mail->getReplyToId()])) {
+        $mails[$mail->getReplyToId()]->addResponses($mail->getId());
     }
 }
 
 foreach($mails as $id => $mail) {
-    if(isset($mail['In-Reply-To']) && $mail['In-Reply-To']) {
+    if($mail->getReplyToId()) {
         unset($mails[$id]);
         continue;
     }
-    if(isset($mail['Responses']) && count($mail['Responses']) > 0) {
+    if(count($mail->getResponses()) > 0) {
         unset($mails[$id]);
         continue;
     }
@@ -62,37 +56,33 @@ foreach($mails as $id => $mail) {
 $counter = [];
 $counterConf = ['-24 hours' => "24 dernières heures", '-7 days' => "7 derniers jours", '-30 days' => "30 derniers jours", '-3 months' => "3 derniers mois glissant"];
 foreach($mails as $mail):
-    $client = findClient($mail, $domains);
+    $client = $mail->getClient();
     if(!$client) {
         continue;
     }
-    $mail['DateOrigin'] = $mail['Date'];
-    try {
-        $mail['Date'] = new DateTime($mail['Date']);
-        $mail['Date']->modify("+1 hour");
-    } catch(Exception $e) {
+    $dateObject = $mail->getDateObject();
+    if(!$dateObject) {
         continue;
     }
-    if($mail['Date']->format('Y') != date('Y')) {
+    if($dateObject->format('Y') != date('Y')) {
         continue;
     }
-    $mail['Client'] = $client;
     if($client == $current || $current == 'all') {
         foreach($counterConf as $duration => $counterLibelle) {
             if(!isset($counter[$duration])) {
                 $counter[$duration] = 0;
             }
             $counter[$duration];
-            if($mail['Date']->format('Y-m-d') >= (new DateTime())->modify($duration)->format('Y-m-d')) {
+            if($dateObject->format('Y-m-d') >= (new DateTime())->modify($duration)->format('Y-m-d')) {
                 $counter[$duration]++;
             }
         }
     }
-    if(isset($_GET['duration']) && $mail['Date']->format('Y-m-d') < (new DateTime())->modify($_GET['duration'])->format('Y-m-d')) {
+    if(isset($_GET['duration']) && $dateObject->format('Y-m-d') < (new DateTime())->modify($_GET['duration'])->format('Y-m-d')) {
         continue;
     }
-    $clients['all'][$mail['Date']->format('Y-m-d H:i:s').$mail['Message-Id']] = $mail;
-    $clients[$client][$mail['Date']->format('Y-m-d H:i:s').$mail['Message-Id']] = $mail;
+    $clients['all'][$dateObject->format('Y-m-d H:i:s').$mail->getId()] = $mail;
+    $clients[$client][$dateObject->format('Y-m-d H:i:s').$mail->getId()] = $mail;
 endforeach;
 
 foreach($clients as $client => $mails) {
@@ -117,7 +107,7 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                 <div class="card">
                     <div class="list-group list-group-flush">
                         <?php foreach($clients as $client => $mails): ?>
-                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>text-primary<?php endif; ?>">
+                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>text-primary<?php endif; ?> <?php if(!count($mails)): ?>opacity-50<?php endif; ?>">
                                 <?php if($client == 'all'): ?>ZeroInbox<?php else: ?><?php echo $client ?><?php endif; ?>
                                 <span class="badge <?php if($current != $client && $client == 'all'): ?>bg-dark<?php elseif($current != $client): ?>bg-secondary bg-opacity-75<?php endif; ?><?php if($current == $client && $client != 'all'): ?>bg-white text-primary<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>bg-primary<?php endif; ?> rounded-pill"><?php echo count($mails) ?></span>
                             </a>
@@ -149,20 +139,20 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                         <tbody>
                             <?php foreach($clients[$current] as $mail): ?>
                                 <tr>
-                                    <td title="<?php echo $mail['Message-Id'] ?>"><?php echo str_replace(" ", "&nbsp;", $mail['Date']->format('d/m/Y H:i')); ?></td>
-                                    <td class="user-select-all"><?php echo $mail['From']; ?></td>
-                                    <td class="user-select-all"><?php echo $mail['Subject']; ?></td>
-                                    <td class="text-center"><?php echo $mail['Client']; ?></td>
+                                    <td title="<?php echo $mail->getId() ?>"><?php echo str_replace(" ", "&nbsp;",$mail->getDateObject()->format('d/m/Y H:i')); ?></td>
+                                    <td class="user-select-all"><?php echo $mail->getFromEmail(); ?></td>
+                                    <td class="user-select-all"><?php echo $mail->getSubject(); ?></td>
+                                    <td class="text-center"><?php echo $mail->getClient(); ?></td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>
                     </table>
                     <textarea class="form-control mb-4 opacity-25" style="height: 400px;" readonly="readonly"><?php foreach($clients[$current] as $mail): ?>-------------------
-Date: <?php echo $mail['DateOrigin'] ?>
+Date: <?php echo $mail->getHeader('Date') ?>
 
-From: <?php echo $mail['FromOrigin'] ?>
+From: <?php echo $mail->getHeader('From') ?>
 
-Subject: <?php echo $mail['Subject']; ?>
+Subject: <?php echo $mail->getSubject(); ?>
 
 <?php endforeach; ?></textarea>
                 </div>
