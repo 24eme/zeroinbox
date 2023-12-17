@@ -37,7 +37,7 @@ while (($line = fgets($handle)) !== false) {
     foreach($headers as $headerKey => $headerValue) {
         if(strpos(strtolower($line), strtolower($headerKey).':') === 0) {
             $currentHeaderKey = $headerKey;
-            $headers[$headerKey] .= preg_replace('/^'.$headerKey.': /i', '', $line);
+            $headers[$headerKey] .= preg_replace('/^'.$headerKey.':[ \t]*/i', '', $line);
         }
     }
 }
