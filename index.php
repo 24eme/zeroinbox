@@ -16,7 +16,9 @@ foreach($domains as $client) {
     $clients[$client] = [];
 }
 
-$current = isset($_GET['client']) ? $_GET['client'] : 'all';
+$currentClient = isset($_GET['client']) ? $_GET['client'] : 'all';
+$currentDuration = isset($_GET['duration']) ? $_GET['duration'] : null;
+
 $subjects = [];
 foreach($mails as $mail) {
     $subjects[strtolower($mail->getSubject())] = $mail->getId();
@@ -67,7 +69,7 @@ foreach($mails as $mail):
     if($dateObject->format('Y') != date('Y')) {
         continue;
     }
-    if($client == $current || $current == 'all') {
+    if($client == $currentClient || $currentClient == 'all') {
         foreach($counterConf as $duration => $counterLibelle) {
             if(!isset($counter[$duration])) {
                 $counter[$duration] = 0;
@@ -78,7 +80,7 @@ foreach($mails as $mail):
             }
         }
     }
-    if(isset($_GET['duration']) && $dateObject->format('Y-m-d') < (new DateTime())->modify($_GET['duration'])->format('Y-m-d')) {
+    if($currentDuration && $dateObject->format('Y-m-d') < (new DateTime())->modify($currentDuration)->format('Y-m-d')) {
         continue;
     }
     $clients['all'][$dateObject->format('Y-m-d H:i:s').$mail->getId()] = $mail;
@@ -107,9 +109,9 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                 <div class="card">
                     <div class="list-group list-group-flush">
                         <?php foreach($clients as $client => $mails): ?>
-                            <a href="?<?php if($client != $current): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($current == $client && $client != 'all'): ?>active<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>text-primary<?php endif; ?> <?php if(!count($mails)): ?>opacity-50<?php endif; ?>">
+                            <a href="?<?php if($client != $currentClient): ?>client=<?php echo $client ?><?php endif; ?>" class="list-group-item d-flex justify-content-between align-items-center <?php if($client == 'all'): ?>fs-5 bg-light<?php endif; ?> <?php if($currentClient == $client && $client != 'all'): ?>active<?php endif; ?> <?php if($currentClient == $client && $client == 'all'): ?>text-primary<?php endif; ?> <?php if(!count($mails)): ?>opacity-50<?php endif; ?>">
                                 <?php if($client == 'all'): ?>ZeroInbox<?php else: ?><?php echo $client ?><?php endif; ?>
-                                <span class="badge <?php if($current != $client && $client == 'all'): ?>bg-dark<?php elseif($current != $client): ?>bg-secondary bg-opacity-75<?php endif; ?><?php if($current == $client && $client != 'all'): ?>bg-white text-primary<?php endif; ?> <?php if($current == $client && $client == 'all'): ?>bg-primary<?php endif; ?> rounded-pill"><?php echo count($mails) ?></span>
+                                <span class="badge <?php if($currentClient != $client && $client == 'all'): ?>bg-dark<?php elseif($currentClient != $client): ?>bg-secondary bg-opacity-75<?php endif; ?><?php if($currentClient == $client && $client != 'all'): ?>bg-white text-primary<?php endif; ?> <?php if($currentClient == $client && $client == 'all'): ?>bg-primary<?php endif; ?> rounded-pill"><?php echo count($mails) ?></span>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -119,10 +121,10 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                 <div class="row mb-4">
                     <?php foreach($counter as $duration => $number):  ?>
                     <div class="col">
-                        <div class="card <?php if(isset($_GET['duration']) && $_GET['duration'] == $duration): ?>border-primary<?php endif; ?>">
-                            <div class="card-header <?php if(isset($_GET['duration']) && $_GET['duration'] == $duration): ?>text-bg-primary<?php endif; ?> text-center"><?php echo $counterConf[$duration] ?></div>
+                        <div class="card <?php if($currentDuration == $duration): ?>border-primary<?php endif; ?>">
+                            <div class="card-header <?php if($currentDuration == $duration): ?>text-bg-primary<?php endif; ?> text-center"><?php echo $counterConf[$duration] ?></div>
                             <div class="card-body text-center p-1">
-                                <a class="btn stretched-link <?php if(isset($_GET['duration']) && $_GET['duration'] == $duration): ?>text-primary<?php endif; ?>" href="?client=<?php echo $current ?><?php if(!isset($_GET['duration']) || $_GET['duration'] != $duration): ?>&duration=<?php echo $duration ?><?php endif ?>"><?php echo $number ?></a>
+                                <a class="btn stretched-link <?php if($currentDuration == $duration): ?>text-primary<?php endif; ?>" href="?client=<?php echo $currentClient ?><?php if(!$currentDuration || $currentDuration != $duration): ?>&duration=<?php echo $duration ?><?php endif ?>"><?php echo $number ?></a>
                             </div>
                         </div>
                     </div>
@@ -137,7 +139,7 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                             <th>Client</th>
                         </thead>
                         <tbody>
-                            <?php foreach($clients[$current] as $mail): ?>
+                            <?php foreach($clients[$currentClient] as $mail): ?>
                                 <tr>
                                     <td title="<?php echo $mail->getId() ?>"><?php echo str_replace(" ", "&nbsp;",$mail->getDateObject()->format('d/m/Y H:i')); ?></td>
                                     <td class="user-select-all"><?php echo $mail->getFromEmail(); ?></td>
@@ -147,7 +149,7 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
                             <?php endforeach ?>
                         </tbody>
                     </table>
-                    <textarea class="form-control mb-4 opacity-25" style="height: 400px;" readonly="readonly"><?php foreach($clients[$current] as $mail): ?>-------------------
+                    <textarea class="form-control mb-4 opacity-25" style="height: 400px;" readonly="readonly"><?php foreach($clients[$currentClient] as $mail): ?>-------------------
 Date: <?php echo $mail->getHeader('Date') ?>
 
 From: <?php echo $mail->getHeader('From') ?>
