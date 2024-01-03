@@ -66,7 +66,7 @@ foreach($mails as $mail):
     if(!$dateObject) {
         continue;
     }
-    if($dateObject->format('Y') != date('Y')) {
+    if($dateObject->format('Y-m-d') < Config::getInstance()->config['from_date']) {
         continue;
     }
     if($client == $currentClient || $currentClient == 'all') {
