@@ -69,7 +69,7 @@ class Mail {
     public function getClient() {
         $config = Config::getInstance()->config;
 
-        if(isset($config['clients'][strtolower($this->getFromEmail())])) {
+        if(array_key_exists(strtolower($this->getFromEmail()), $config['clients'])) {
             return $config['clients'][strtolower($this->getFromEmail())];
         }
         $domain = explode('@', $this->getFromEmail())[1];
