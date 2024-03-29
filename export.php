@@ -24,7 +24,7 @@ foreach ($mailsHeader as $headers) {
     fputcsv($csv, [
         $mail->getClient(),
         $mail->getSubject(),
-        $mail->getDateObject()?->format('Y-m-d H:i:s'),
+        $mail->getDateObject() ? $mail->getDateObject()->format('Y-m-d H:i:s') : null,
         $mail->getId(),
         $mail->getReplyToId(),
     ], ';');
