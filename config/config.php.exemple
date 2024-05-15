@@ -4,6 +4,7 @@ $config = [
     'from_date' => '2023-01-01',
     'mail_file' => '/var/mails/imap_inbox',
     'team_email' => '@example.com',
+    'bounce_email' => null,
     'clients' => [
         'client.fr' => 'client1',
         'client.com' => 'client2',

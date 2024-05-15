@@ -16,7 +16,7 @@ class Mail {
 
     public static function getEmptyHeaders() {
 
-        return ["From" => null, "Subject" => null, "Date" => null, "Message-Id" => null, "In-Reply-To" => null];
+        return ["From" => null, "Subject" => null, "Date" => null, "Message-Id" => null, "In-Reply-To" => null, "Resent-To" => null];
     }
 
     public static function extractInChevron($value) {
@@ -35,6 +35,11 @@ class Mail {
     public function getId() {
 
         return self::extractInChevron($this->headers['Message-Id']);
+    }
+
+    public function isBounce() {
+
+	    return Config::getInstance()->config['bounce_mail'] && $this->headers['Resent-To'] == Config::getInstance()->config['bounce_mail'];
     }
 
     public function setReplyToId($value) {

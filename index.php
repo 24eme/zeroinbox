@@ -13,6 +13,9 @@ foreach($mailsHeader as $headers) {
 $clients = ['all' => []];
 $domains = $config['clients'];
 foreach($domains as $client) {
+    if(is_null($client)) {
+	continue;
+    }
     $clients[$client] = [];
 }
 
@@ -25,6 +28,9 @@ foreach($mails as $mail) {
 }
 
 foreach($mails as $id => $mail) {
+    if($mail->isBounce()) {
+	$mail->setReplyToId(null);
+    }
     if($mail->getReplyToId()) {
         continue;
     }
