@@ -106,6 +106,7 @@ uasort($clients, function($a, $b) { return count($a) < count($b); });
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title></title>
+    <link id="favicon-link" rel="icon" type="image/x-icon" href="">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 </head>
 <body>
@@ -166,5 +167,27 @@ Subject: <?php echo $mail->getSubject(); ?>
                 </div>
             </div>
         </div>
+	<script>
+        function makeFavicon(letters, color, backgroundColor, fontSizeInPixels, x, y) {
+            let canvas = document.createElement('canvas');
+            canvas.width = 16;
+            canvas.height = 16;
+
+	    let ctx = canvas.getContext('2d');
+	    ctx.fillStyle = backgroundColor;
+	    ctx.beginPath();
+	    ctx.roundRect(0, 0, 16, 16, [4]);
+	    ctx.fill();
+            let ctx2 = canvas.getContext("2d");
+            ctx2.fillStyle = color;
+            ctx2.font = "bold "+fontSizeInPixels.toString()+"px monospace";
+            ctx2.fillText(letters, x, y);
+
+            let link = document.getElementById("favicon-link");
+            link.href = canvas.toDataURL("image/x-icon");
+        }
+	makeFavicon("<?php echo count($clients['all']) ?>", "white", "black", 12, 1, 12);
+	setInterval(function() { window.location.reload(); }, 600000);
+    </script>
     </body>
     </html>
