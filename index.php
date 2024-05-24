@@ -176,7 +176,7 @@ Subject: <?php echo $mail->getSubject(); ?>
 	    let ctx = canvas.getContext('2d');
 	    ctx.fillStyle = backgroundColor;
 	    ctx.beginPath();
-	    ctx.roundRect(0, 0, 16, 16, [4]);
+	    ctx.roundRect(0, 0, 16, 16, [8]);
 	    ctx.fill();
             let ctx2 = canvas.getContext("2d");
             ctx2.fillStyle = color;
@@ -186,7 +186,7 @@ Subject: <?php echo $mail->getSubject(); ?>
             let link = document.getElementById("favicon-link");
             link.href = canvas.toDataURL("image/x-icon");
         }
-	makeFavicon("<?php echo count($clients['all']) ?>", "white", "black", 12, 1, 12);
+	makeFavicon("<?php echo count($clients['all']) ?>", "white", "black", 10, 2, 12);
 	setInterval(function() { window.location.reload(); }, 600000);
     </script>
     </body>
