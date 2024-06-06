@@ -1,5 +1,7 @@
 <?php
 
+// Usage : export.php ['@client.fr']
+
 require_once('core.php');
 require_once('config/config.php');
 
@@ -18,8 +20,14 @@ if ($csv === false) {
     exit;
 }
 
+$client = $argc === 2 ? $argv[1] : null;
+
 foreach ($mailsHeader as $headers) {
     $mail = new Mail($headers);
+
+    if ($client && strstr($mail->getFromEmail(), '@') !== $client) {
+        continue;
+    }
 
     fputcsv($csv, [
         $mail->getClient(),
