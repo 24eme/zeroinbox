@@ -99,6 +99,23 @@ foreach($clients as $client => $mails) {
 
 uasort($clients, function($a, $b) { return count($a) < count($b); });
 
+if (isset($_GET["output"]) == 'csv') {
+    $csv = fopen('php://output', 'a');
+
+    if ($csv === false) {
+        fwrite(STDERR, "Impossible d'ouvrir le flux de sortie".PHP_EOL);
+        exit;
+    }
+    foreach ($clients[$currentClient] as $mail) {
+        fputcsv($csv, [
+            $mail->getDateObject() ? $mail->getDateObject()->format('Y-m-d H:i') : null,
+            $mail->getSubject(),
+            $mail->getFromEmail(),
+            ], ';');
+    }
+    fclose ($csv);
+    exit;
+}
 ?>
 <!doctype html>
 <html lang="en">
