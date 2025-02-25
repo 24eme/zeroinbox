@@ -39,7 +39,7 @@ class Mail {
 
     public function isBounce() {
 
-	    return Config::getInstance()->config['bounce_mail'] && $this->headers['Resent-To'] == Config::getInstance()->config['bounce_mail'];
+	    return isset(Config::getInstance()->config['bounce_mail']) && isset($this->headers['Resent-To']) && $this->headers['Resent-To'] == Config::getInstance()->config['bounce_mail'];
     }
 
     public function setReplyToId($value) {
@@ -77,7 +77,10 @@ class Mail {
         if(array_key_exists(strtolower($this->getFromEmail()), $config['clients'])) {
             return $config['clients'][strtolower($this->getFromEmail())];
         }
-        $domain = explode('@', $this->getFromEmail())[1];
+	if (strpos($this->getFromEmail(), '@') === false) {
+		return null;
+	}
+	$domain = explode('@', $this->getFromEmail())[1];
 
         if(isset($config['clients'][strtolower($domain)])) {
             return $config['clients'][strtolower($domain)];
